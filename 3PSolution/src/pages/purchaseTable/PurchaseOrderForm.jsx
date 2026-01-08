@@ -1,0 +1,252 @@
+import React, { useState, useEffect } from "react";
+import DateInput from "../../components/DateInput";
+
+const PurchaseOrderForm = () => {
+    const [form, setForm] = useState({
+        clientName: "",
+        poValue: "",
+        acPay: "",
+        handCash: "",
+        poDate: "",
+        due: "",
+        paymentDate: "",
+        remarks: "",
+    });
+
+
+    const [poDate, setPoDate] = useState(new Date());
+
+    const handleChange = (e) => {
+        setForm({
+            ...form,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    // Auto-calculate due amount
+    useEffect(() => {
+        const poValue = parseFloat(form.poValue) || 0;
+        const acPay = parseFloat(form.acPay) || 0;
+        const handCash = parseFloat(form.handCash) || 0;
+        const calculatedDue = poValue - (acPay + handCash);
+
+        if (calculatedDue !== parseFloat(form.due)) {
+            setForm(prev => ({
+                ...prev,
+                due: calculatedDue > 0 ? calculatedDue.toString() : "0"
+            }));
+        }
+    }, [form.poValue, form.acPay, form.handCash]);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("Form Data:", form);
+        alert("Form submitted! Check console for data.");
+    };
+
+    const totalAdvance = (parseFloat(form.acPay) || 0) + (parseFloat(form.handCash) || 0);
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-4">
+            <div className="max-w-7xl mx-auto">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-2">
+                        <h2 className="text-xl font-bold text-white">
+                            Purchase Order Management
+                        </h2>
+                        <p className="text-blue-100 text-sm mt-1">Vendor & Payment Details</p>
+                    </div>
+
+                    <div className="p-6">
+                        {/* Main Info Row */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                            <div className="lg:col-span-1">
+                                <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                    Client Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="clientName"
+                                    value={form.clientName}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Enter client name"
+                                    className="w-full border-2 border-gray-200 px-4 py-2 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                    PO Value *
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">৳</span>
+                                    <input
+                                        type="number"
+                                        name="poValue"
+                                        value={form.poValue}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="0.00"
+                                        className="w-full border-2 border-gray-200 pl-8 pr-4 py-2.5 rounded-lg text-right focus:outline-none focus:border-blue-500 transition-colors"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                    PO Date *
+                                </label>
+                                <DateInput
+                                    value={poDate}
+                                    onChange={setPoDate}
+                                    placeholder="PO Date"
+                                />
+
+                            </div>
+                        </div>
+
+                        {/* Payment Section */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            {/* Advance Received */}
+                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-bold text-emerald-800 text-lg">
+                                        💰 Advance Received
+                                    </h3>
+                                    <span className="bg-emerald-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                        ৳ {totalAdvance.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                            AC Pay
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">৳</span>
+                                            <input
+                                                type="number"
+                                                name="acPay"
+                                                value={form.acPay}
+                                                onChange={handleChange}
+                                                placeholder="0.00"
+                                                className="w-full border-2 border-emerald-200 pl-8 pr-4 py-2.5 rounded-lg text-right bg-white focus:outline-none focus:border-emerald-500 transition-colors"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                            Hand Cash
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">৳</span>
+                                            <input
+                                                type="number"
+                                                name="handCash"
+                                                value={form.handCash}
+                                                onChange={handleChange}
+                                                placeholder="0.00"
+                                                className="w-full border-2 border-emerald-200 pl-8 pr-4 py-2.5 rounded-lg text-right bg-white focus:outline-none focus:border-emerald-500 transition-colors"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Remaining Due */}
+                            <div className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-bold text-orange-800 text-lg">
+                                        📋 Remaining Due
+                                    </h3>
+                                    <span className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                        ৳ {(parseFloat(form.due) || 0).toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                            Due Amount (Auto-calculated)
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">৳</span>
+                                            <input
+                                                type="number"
+                                                name="due"
+                                                value={form.due}
+                                                readOnly
+                                                className="w-full border-2 border-orange-200 pl-8 pr-4 py-2.5 rounded-lg text-right bg-gray-50 cursor-not-allowed"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                            Payment Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="paymentDate"
+                                            value={form.paymentDate}
+                                            onChange={handleChange}
+                                            className="w-full border-2 border-orange-200 px-4 py-2.5 rounded-lg bg-white focus:outline-none focus:border-orange-500 transition-colors"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Remarks */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-gray-700 mb-0">
+                                Remarks / Notes
+                            </label>
+                            <textarea
+                                name="remarks"
+                                value={form.remarks}
+                                onChange={handleChange}
+                                rows="3"
+                                placeholder="Add any additional notes or comments..."
+                                className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                            />
+                        </div>
+
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setForm({
+                                    clientName: "",
+                                    poValue: "",
+                                    acPay: "",
+                                    handCash: "",
+                                    poDate: "",
+                                    due: "",
+                                    paymentDate: "",
+                                    remarks: "",
+                                })}
+                                className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Reset
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                className="px-8 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all"
+                            >
+                                💾 Save Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default PurchaseOrderForm;
