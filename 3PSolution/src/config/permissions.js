@@ -2,6 +2,10 @@ import ClientAndPo from "../pages/purchaseTable/ClientAndPo";
 import Dashboard from "../pages/Dashboard";
 import Users from '../pages/Users'
 import PurchaseOrderForm from "../pages/purchaseTable/PurchaseOrderForm";
+import SEList from "../pages/SE/SEList";
+import CreateSE from "../pages/SE/CreateSE";
+import ExpandNReceiveList from "../pages/ExpandandReceiveAmount/ExpandNReceiveList";
+import CreateExpandReceive from "../pages/ExpandandReceiveAmount/CreateExpndRcve";
 
 /* 🔑 Node IDs */
 export const NODES = [
@@ -43,7 +47,21 @@ export const NODES = [
         id: 4,
         name: "SE",
         icon: "LayoutDashboard",
-        path: "/se",
+        children: [
+            {
+                id: 2.1,
+                name: "Create",
+                path: "/create-se",
+                element: CreateSE,
+            },
+            {
+                id: 2.2,
+                name: "List",
+                path: "/se",
+                element: SEList,
+            },
+
+        ],
     },
     {
         id: 5,
@@ -53,9 +71,23 @@ export const NODES = [
     },
     {
         id: 6,
-        name: "Expenditure & Received Amount",
+        name: "Expenditure Received ",
         icon: "LayoutDashboard",
-        path: "/rexpenditure",
+        children: [
+            {
+                id: 2.1,
+                name: "List",
+                path: "/expnd-recive",
+                element: ExpandNReceiveList,
+            },
+            {
+                id: 2.2,
+                name: "Create",
+                path: "/create-expand-receive",
+                element: CreateExpandReceive,
+            },
+
+        ],
     },
     {
         id: 7,

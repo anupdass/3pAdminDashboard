@@ -51,6 +51,9 @@ const ClientAndPo = () => {
                         <th rowSpan="2" className="border border-black px-2 py-2">
                             Remarks
                         </th>
+                        <th rowSpan="2" className="border border-black px-2 py-2">
+                            Action
+                        </th>
                     </tr>
 
                     {/* Sub Header */}
