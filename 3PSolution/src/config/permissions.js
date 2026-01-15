@@ -6,6 +6,10 @@ import SEList from "../pages/SE/SEList";
 import CreateSE from "../pages/SE/CreateSE";
 import ExpandNReceiveList from "../pages/ExpandandReceiveAmount/ExpandNReceiveList";
 import CreateExpandReceive from "../pages/ExpandandReceiveAmount/CreateExpndRcve";
+import CreateLocalPurchase from "../pages/LocalPurchase/CreateLocalPurchase";
+import LocalPurchase from "../pages/LocalPurchase/LocalPurchase";
+import ConveyanceList from "../pages/Conveyance/ConveyanceList";
+import CreateConveyance from "../pages/Conveyance/CreateConveyance";
 
 /* 🔑 Node IDs */
 export const NODES = [
@@ -93,21 +97,42 @@ export const NODES = [
         id: 7,
         name: "Local Purchase",
         icon: "LayoutDashboard",
-        path: "/local-purchase",
+        children: [
+            {
+                id: 2.1,
+                name: "List",
+                path: "/purchase-list",
+                element: LocalPurchase,
+            },
+            {
+                id: 2.2,
+                name: "Create",
+                path: "/create-local-purchase",
+                element: CreateLocalPurchase,
+            },
+
+        ],
     },
     {
         id: 8,
         name: "Conveyance",
         icon: "LayoutDashboard",
         path: "/conveyance",
-        // children: [
-        //     {
-        //         id: 2.1,
-        //         name: "Posts",
-        //         path: "/posts",
-        //         element: AllPosts,
-        //     },
-        // ],
+        children: [
+            {
+                id: 2.1,
+                name: "List",
+                path: "/conveyance-list",
+                element: ConveyanceList,
+            },
+            {
+                id: 2.2,
+                name: "Create",
+                path: "/conveyance-create",
+                element: CreateConveyance,
+            },
+
+        ],
     },
     {
         id: 9,
