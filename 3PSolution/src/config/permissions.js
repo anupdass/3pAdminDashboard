@@ -10,6 +10,7 @@ import CreateLocalPurchase from "../pages/LocalPurchase/CreateLocalPurchase";
 import LocalPurchase from "../pages/LocalPurchase/LocalPurchase";
 import ConveyanceList from "../pages/Conveyance/ConveyanceList";
 import CreateConveyance from "../pages/Conveyance/CreateConveyance";
+import EditPurchaseOrder from "../pages/purchaseTable/EditPurchaseOrder";
 
 /* 🔑 Node IDs */
 export const NODES = [
@@ -38,6 +39,12 @@ export const NODES = [
                 path: "/Client-po",
                 element: ClientAndPo,
             },
+            {
+                id: 2.3,
+                roleName: "Edit",
+                path: "/editpurchase/:id",
+                element: EditPurchaseOrder,
+            },
 
         ],
     },
@@ -53,13 +60,13 @@ export const NODES = [
         icon: "LayoutDashboard",
         children: [
             {
-                id: 2.1,
+                id: 4.1,
                 name: "Create",
                 path: "/create-se",
                 element: CreateSE,
             },
             {
-                id: 2.2,
+                id: 4.2,
                 name: "List",
                 path: "/se",
                 element: SEList,
@@ -79,13 +86,13 @@ export const NODES = [
         icon: "LayoutDashboard",
         children: [
             {
-                id: 2.1,
+                id: 6.1,
                 name: "List",
                 path: "/expnd-recive",
                 element: ExpandNReceiveList,
             },
             {
-                id: 2.2,
+                id: 6.2,
                 name: "Create",
                 path: "/create-expand-receive",
                 element: CreateExpandReceive,
@@ -99,13 +106,13 @@ export const NODES = [
         icon: "LayoutDashboard",
         children: [
             {
-                id: 2.1,
+                id: 7.1,
                 name: "List",
                 path: "/purchase-list",
                 element: LocalPurchase,
             },
             {
-                id: 2.2,
+                id: 7.2,
                 name: "Create",
                 path: "/create-local-purchase",
                 element: CreateLocalPurchase,
@@ -120,18 +127,17 @@ export const NODES = [
         path: "/conveyance",
         children: [
             {
-                id: 2.1,
+                id: 8.1,
                 name: "List",
                 path: "/conveyance-list",
                 element: ConveyanceList,
             },
             {
-                id: 2.2,
+                id: 8.2,
                 name: "Create",
                 path: "/conveyance-create",
                 element: CreateConveyance,
             },
-
         ],
     },
     {

@@ -25,7 +25,7 @@ const UpdateRoleModal = ({ open, onClose, user, onUpdate, loading }) => {
         nodes.map((node) => (
             <div key={node.id} style={{ marginLeft: `${level * 16}px` }} className="mb-1">
                 {
-                    node.name && (
+                    (node.name || node.roleName) && (
                         <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 hover:text-blue-600">
                             <input
                                 type="checkbox"
@@ -33,7 +33,7 @@ const UpdateRoleModal = ({ open, onClose, user, onUpdate, loading }) => {
                                 onChange={() => toggleRole(node.id)}
                                 className="w-4 h-4"
                             />
-                            {node.name}
+                            {node.name || node.roleName}
                         </label>
                     )
                 }

@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from "react";
 import DateInput from "../../components/DateInput";
+import { useCreateClientPoMutation } from "../../redux/features/clientPoSlice";
 
 const PurchaseOrderForm = () => {
+
     const [form, setForm] = useState({
         clientName: "",
         poValue: "",
-        acPay: "",
-        handCash: "",
+        poAccountPay: "",    //poAccountPay
+        poHandPay: "", //poHandPay
         poDate: "",
-        due: "",
-        paymentDate: "",
-        remarks: "",
+        poDueAmount: "", //poDueAmount
+        paymentDate: "", //poDueDate
+        poRemarks: "", //popoRemarks
     });
 
 
     const [poDate, setPoDate] = useState(new Date());
+
+    const [createClientPo, { isLoading, error }] = useCreateClientPoMutation();
 
     const handleChange = (e) => {
         setForm({
@@ -26,25 +30,34 @@ const PurchaseOrderForm = () => {
     // Auto-calculate due amount
     useEffect(() => {
         const poValue = parseFloat(form.poValue) || 0;
-        const acPay = parseFloat(form.acPay) || 0;
-        const handCash = parseFloat(form.handCash) || 0;
-        const calculatedDue = poValue - (acPay + handCash);
+        const poAccountPay = parseFloat(form.poAccountPay) || 0;
+        const poHandPay = parseFloat(form.poHandPay) || 0;
+        const calculatedDue = poValue - (poAccountPay + poHandPay);
 
-        if (calculatedDue !== parseFloat(form.due)) {
+        // console.log(calculatedDue);
+
+        if (calculatedDue !== parseFloat(form.poDueAmount)) {
             setForm(prev => ({
                 ...prev,
-                due: calculatedDue > 0 ? calculatedDue.toString() : "0"
+                poDueAmount: calculatedDue > 0 ? calculatedDue.toString() : "0"
             }));
         }
-    }, [form.poValue, form.acPay, form.handCash]);
+    }, [form.poValue, form.poAccountPay, form.poHandPay]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form Data:", form);
-        alert("Form submitted! Check console for data.");
+
+        try {
+            const res = await createClientPo(form).unwrap();
+            console.log("Success:", res);
+            alert("PO created successfully!");
+        } catch (err) {
+            console.error("Error:", err);
+            alert(err?.data?.message || "Something went wrong");
+        }
     };
 
-    const totalAdvance = (parseFloat(form.acPay) || 0) + (parseFloat(form.handCash) || 0);
+    const totalAdvance = (parseFloat(form.poAccountPay) || 0) + (parseFloat(form.poHandPay) || 0);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-4">
@@ -99,8 +112,13 @@ const PurchaseOrderForm = () => {
                                     PO Date *
                                 </label>
                                 <DateInput
-                                    value={poDate}
-                                    onChange={setPoDate}
+                                    value={form.poDate || new Date()}
+                                    onChange={(date) => {
+                                        setForm(prev => ({
+                                            ...prev,
+                                            poDate: date
+                                        }));
+                                    }}
                                     placeholder="PO Date"
                                 />
 
@@ -129,8 +147,8 @@ const PurchaseOrderForm = () => {
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">৳</span>
                                             <input
                                                 type="number"
-                                                name="acPay"
-                                                value={form.acPay}
+                                                name="poAccountPay"
+                                                value={form.poAccountPay}
                                                 onChange={handleChange}
                                                 placeholder="0.00"
                                                 className="w-full border-2 border-emerald-200 pl-8 pr-4 py-2.5 rounded-lg text-right bg-white focus:outline-none focus:border-emerald-500 transition-colors"
@@ -146,8 +164,8 @@ const PurchaseOrderForm = () => {
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">৳</span>
                                             <input
                                                 type="number"
-                                                name="handCash"
-                                                value={form.handCash}
+                                                name="poHandPay"
+                                                value={form.poHandPay}
                                                 onChange={handleChange}
                                                 placeholder="0.00"
                                                 className="w-full border-2 border-emerald-200 pl-8 pr-4 py-2.5 rounded-lg text-right bg-white focus:outline-none focus:border-emerald-500 transition-colors"
@@ -164,7 +182,7 @@ const PurchaseOrderForm = () => {
                                         📋 Remaining Due
                                     </h3>
                                     <span className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                        ৳ {(parseFloat(form.due) || 0).toFixed(2)}
+                                        ৳ {(parseFloat(form.poDueAmount) || 0).toFixed(2)}
                                     </span>
                                 </div>
 
@@ -177,8 +195,8 @@ const PurchaseOrderForm = () => {
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">৳</span>
                                             <input
                                                 type="number"
-                                                name="due"
-                                                value={form.due}
+                                                name="poDueAmount"
+                                                value={form.poDueAmount}
                                                 readOnly
                                                 className="w-full border-2 border-orange-200 pl-8 pr-4 py-2.5 rounded-lg text-right bg-gray-50 cursor-not-allowed"
                                             />
@@ -193,7 +211,12 @@ const PurchaseOrderForm = () => {
                                             type="date"
                                             name="paymentDate"
                                             value={form.paymentDate}
-                                            onChange={handleChange}
+                                            onChange={(e) => {
+                                                setForm(prev => ({
+                                                    ...prev,
+                                                    paymentDate: e.target.value
+                                                }));
+                                            }}
                                             className="w-full border-2 border-orange-200 px-4 py-2.5 rounded-lg bg-white focus:outline-none focus:border-orange-500 transition-colors"
                                         />
                                     </div>
@@ -201,14 +224,14 @@ const PurchaseOrderForm = () => {
                             </div>
                         </div>
 
-                        {/* Remarks */}
+                        {/* poRemarks */}
                         <div className="mb-6">
                             <label className="block text-sm font-semibold text-gray-700 mb-0">
-                                Remarks / Notes
+                                poRemarks / Notes
                             </label>
                             <textarea
-                                name="remarks"
-                                value={form.remarks}
+                                name="poRemarks"
+                                value={form.poRemarks}
                                 onChange={handleChange}
                                 rows="3"
                                 placeholder="Add any additional notes or comments..."
@@ -224,12 +247,12 @@ const PurchaseOrderForm = () => {
                                 onClick={() => setForm({
                                     clientName: "",
                                     poValue: "",
-                                    acPay: "",
-                                    handCash: "",
+                                    poAccountPay: "",
+                                    poHandPay: "",
                                     poDate: "",
-                                    due: "",
+                                    poDueAmount: "",
                                     paymentDate: "",
-                                    remarks: "",
+                                    poRemarks: "",
                                 })}
                                 className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
                             >

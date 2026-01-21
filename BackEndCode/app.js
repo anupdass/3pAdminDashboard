@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const clientPoRoutes = require('./routes/clientPoRoutes');
 
 dotenv.config();
 connectDB();
@@ -22,6 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', authRoutes);
 app.use('/api', userRoutes)
+
+app.use('/api', clientPoRoutes);
 
 
 const PORT = process.env.PORT || 5000;

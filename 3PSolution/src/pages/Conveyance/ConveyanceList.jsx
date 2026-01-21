@@ -62,7 +62,7 @@ export default function ConveyanceList() {
         paidAmount: 0,
         receivedAmount: 0
     })
-
+    j
     const snsGlobalLimited = 150000
     const remainingInHand = snsGlobalLimited - totals.paidAmount
 
