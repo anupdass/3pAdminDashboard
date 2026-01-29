@@ -12,6 +12,8 @@ import ConveyanceList from "../pages/Conveyance/ConveyanceList";
 import CreateConveyance from "../pages/Conveyance/CreateConveyance";
 import EditPurchaseOrder from "../pages/purchaseTable/EditPurchaseOrder";
 
+import UpdateSE from "../pages/SE/UpdateSE";
+
 /* 🔑 Node IDs */
 export const NODES = [
     {
@@ -71,7 +73,12 @@ export const NODES = [
                 path: "/se",
                 element: SEList,
             },
-
+            {
+                id: 4.3,
+                roleName: "Edit",
+                path: "/eidtse/:id",
+                element: UpdateSE,
+            },
         ],
     },
     {

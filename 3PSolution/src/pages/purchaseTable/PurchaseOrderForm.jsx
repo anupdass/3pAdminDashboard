@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import DateInput from "../../components/DateInput";
 import { useCreateClientPoMutation } from "../../redux/features/clientPoSlice";
+import { useNavigate } from "react-router-dom";
 
 const PurchaseOrderForm = () => {
 
@@ -19,6 +20,8 @@ const PurchaseOrderForm = () => {
     const [poDate, setPoDate] = useState(new Date());
 
     const [createClientPo, { isLoading, error }] = useCreateClientPoMutation();
+
+    const navigation = useNavigate()
 
     const handleChange = (e) => {
         setForm({
@@ -49,8 +52,9 @@ const PurchaseOrderForm = () => {
 
         try {
             const res = await createClientPo(form).unwrap();
-            console.log("Success:", res);
-            alert("PO created successfully!");
+            if (res) {
+                navigation("/Client-po");
+            }
         } catch (err) {
             console.error("Error:", err);
             alert(err?.data?.message || "Something went wrong");

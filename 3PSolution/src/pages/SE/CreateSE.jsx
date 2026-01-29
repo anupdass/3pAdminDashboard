@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { FileText, DollarSign, CreditCard, Banknote, AlertCircle } from 'lucide-react';
+import { useCreateSeMutation } from '../../redux/features/seSlice';
+import { useNavigate } from 'react-router-dom';
 
 const CreateSE = () => {
     const [formData, setFormData] = useState({
         projectName: '',
         description: '',
-        costing: '',
-        bcbl: '',
-        cash: '',
+        constingAmount: '',
+        paymentBCBL: '',
+        paymentHand: '',
         remarks: ''
     });
+
+    const [CreateSE, { isLoading, isSuccess, isError, error }] = useCreateSeMutation();
+    const Navigation = useNavigate();
 
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -24,9 +29,21 @@ const CreateSE = () => {
 
     const paymentDue = calculatePaymentDue();
 
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        // Add your submit logic here
+    const handleSubmit = async () => {
+        const userInfo = JSON.parse(localStorage.getItem('user'));
+        const data = {
+            ...formData,
+            createBy: userInfo ? userInfo.name : 'Unknown',
+        };
+
+        const res = await CreateSE(data);
+        if (res.error) {
+            alert('Error creating Service Entry: ' + error.data.message);
+            return;
+        }
+        if (res) {
+            Navigation('/se')
+        }
     };
 
     return (
@@ -83,8 +100,8 @@ const CreateSE = () => {
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">৳</span>
                                     <input
                                         type="number"
-                                        value={formData.costing}
-                                        onChange={(e) => handleChange('costing', e.target.value)}
+                                        value={formData.constingAmount}
+                                        onChange={(e) => handleChange('constingAmount', e.target.value)}
                                         className="w-full pl-7 pr-3 py-2 text-sm border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-slate-800"
                                         placeholder="0.00"
                                     />
@@ -101,8 +118,8 @@ const CreateSE = () => {
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">৳</span>
                                     <input
                                         type="number"
-                                        value={formData.bcbl}
-                                        onChange={(e) => handleChange('bcbl', e.target.value)}
+                                        value={formData.paymentBCBL}
+                                        onChange={(e) => handleChange('paymentBCBL', e.target.value)}
                                         className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-800"
                                         placeholder="0.00"
                                     />
@@ -119,8 +136,8 @@ const CreateSE = () => {
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">৳</span>
                                     <input
                                         type="number"
-                                        value={formData.cash}
-                                        onChange={(e) => handleChange('cash', e.target.value)}
+                                        value={formData.paymentHand}
+                                        onChange={(e) => handleChange('paymentHand', e.target.value)}
                                         className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-800"
                                         placeholder="0.00"
                                     />
@@ -134,8 +151,8 @@ const CreateSE = () => {
                                     Payment Due
                                 </label>
                                 <div className={`px-3 py-2 rounded-lg font-bold text-sm ${paymentDue > 0 ? 'bg-red-100 text-red-700 border border-red-300' :
-                                        paymentDue < 0 ? 'bg-amber-100 text-amber-700 border border-amber-300' :
-                                            'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                    paymentDue < 0 ? 'bg-amber-100 text-amber-700 border border-amber-300' :
+                                        'bg-emerald-100 text-emerald-700 border border-emerald-300'
                                     }`}>
                                     ৳ {paymentDue.toFixed(2)}
                                 </div>
@@ -169,7 +186,7 @@ const CreateSE = () => {
                             onClick={handleSubmit}
                             className="px-6 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all shadow-md"
                         >
-                            Save Entry
+                            {isLoading ? 'Saving...' : 'Save Entry'}
                         </button>
                     </div>
                 </div>
