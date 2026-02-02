@@ -10,6 +10,8 @@ const User = require('../models/usermodel');
 exports.registerUser = async (req, res) => {
     const { name, password, mobile } = req.body;
 
+    // console.log(name, password, mobile);
+
     try {
         let user = await User.findOne({ mobile });
 

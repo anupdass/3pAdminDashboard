@@ -1,9 +1,21 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { DollarSign, Calendar, User, FileText } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { useCreateConveyanceMutation } from '../../redux/features/conveyanceSlice'
+import { useNavigate, useParams } from 'react-router-dom'
+import {
+    useGetConveyanceByIdQuery,
+    useUpdateConveyanceMutation
+} from '../../redux/features/conveyanceSlice'
 
-export default function CreateExpenseForm() {
+export default function UpdateExpenseForm() {
+    const { id } = useParams()
+    const navigate = useNavigate()
+
+    const { data } = useGetConveyanceByIdQuery(id, {
+        refetchOnMountOrArgChange: true,
+    });
+
+    const [updateConveyance, { isLoading }] = useUpdateConveyanceMutation()
+
     const [formData, setFormData] = useState({
         officeExpenditure: '',
         costingAmount: '',
@@ -16,20 +28,28 @@ export default function CreateExpenseForm() {
 
     const [errors, setErrors] = useState({})
 
-    const navigate = useNavigate()
-    const [createConveyance, { isLoading }] = useCreateConveyanceMutation()
+    /* ---------------- PREFILL ---------------- */
+    useEffect(() => {
+        if (data) {
+            setFormData({
+                officeExpenditure: data.officeExpenditure || '',
+                costingAmount: data.costingAmount || '',
+                paidAmount: data.paidAmount || '',
+                remarks: data.remarks || '',
+                receivedDate: data.receivedDate
+                    ? data.receivedDate.split('T')[0]
+                    : '',
+                receivedName: data.receivedName || '',
+                receivedAmount: data.receivedAmount || ''
+            })
+        }
+    }, [data])
 
     const handleChange = (e) => {
         const { name, value } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }))
+        setFormData(prev => ({ ...prev, [name]: value }))
         if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }))
+            setErrors(prev => ({ ...prev, [name]: '' }))
         }
     }
 
@@ -63,45 +83,31 @@ export default function CreateExpenseForm() {
         return Object.keys(newErrors).length === 0
     }
 
+    /* ---------------- UPDATE SUBMIT ---------------- */
     const handleSubmit = async () => {
-        if (validateForm()) {
-            try {
-                const payload = {
-                    officeExpenditure: formData.officeExpenditure.trim(),
-                    costingAmount: parseFloat(formData.costingAmount),
-                    paidAmount: parseFloat(formData.paidAmount),
-                    remarks: formData.remarks.trim() || '',
-                    receivedDate: formData.receivedDate || null,
-                    receivedName: formData.receivedName.trim() || '',
-                    receivedAmount: formData.receivedAmount ? parseFloat(formData.receivedAmount) : 0
-                }
+        if (!validateForm()) return
 
-                const response = await createConveyance(payload).unwrap()
+        try {
+            await updateConveyance({
+                id,
+                officeExpenditure: formData.officeExpenditure.trim(),
+                costingAmount: parseFloat(formData.costingAmount),
+                paidAmount: parseFloat(formData.paidAmount),
+                remarks: formData.remarks.trim() || '',
+                receivedDate: formData.receivedDate || null,
+                receivedName: formData.receivedName.trim() || '',
+                receivedAmount: formData.receivedAmount
+                    ? parseFloat(formData.receivedAmount)
+                    : 0
+            }).unwrap()
 
-                // console.log('Conveyance created:', response)
-
-                // Reset form
-                setFormData({
-                    officeExpenditure: '',
-                    costingAmount: '',
-                    paidAmount: '',
-                    remarks: '',
-                    receivedDate: '',
-                    receivedName: '',
-                    receivedAmount: ''
-                })
-
-                // Navigate to list page
-                navigate('/conveyance-list')
-            } catch (error) {
-                console.error('Failed to create conveyance:', error)
-            }
+            navigate('/conveyance-list')
+        } catch (error) {
+            console.error('Failed to update conveyance:', error)
         }
     }
 
-    const handleReset = () => {
-        navigate('/conveyance-list')
-    }
+    const handleReset = () => navigate('/conveyance-list')
 
     const calculateDueAmount = () => {
         const costing = parseFloat(formData.costingAmount) || 0
@@ -109,13 +115,12 @@ export default function CreateExpenseForm() {
         return costing - paid
     }
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-BD', {
+    const formatCurrency = (amount) =>
+        new Intl.NumberFormat('en-BD', {
             style: 'currency',
             currency: 'BDT',
             minimumFractionDigits: 0
         }).format(amount)
-    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -331,10 +336,10 @@ export default function CreateExpenseForm() {
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                         </svg>
-                                        Creating...
+                                        Updating...
                                     </span>
                                 ) : (
-                                    'Create Conveyance'
+                                    'Update Conveyance'
                                 )}
                             </button>
                         </div>

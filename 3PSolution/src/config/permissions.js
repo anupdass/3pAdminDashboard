@@ -13,6 +13,9 @@ import CreateConveyance from "../pages/Conveyance/CreateConveyance";
 import EditPurchaseOrder from "../pages/purchaseTable/EditPurchaseOrder";
 
 import UpdateSE from "../pages/SE/UpdateSE";
+import EditExpandRcve from "../pages/ExpandandReceiveAmount/EditExpandRcve";
+import EditLocalPurhase from "../pages/LocalPurchase/EditLocalPurhase";
+import UpdateConveyance from "../pages/Conveyance/UpdateConveyance";
 
 /* 🔑 Node IDs */
 export const NODES = [
@@ -104,6 +107,12 @@ export const NODES = [
                 path: "/create-expand-receive",
                 element: CreateExpandReceive,
             },
+            {
+                id: 6.3,
+                roleName: "Edit",
+                path: "/edit-expand-receive/:id",
+                element: EditExpandRcve,
+            },
 
         ],
     },
@@ -123,6 +132,12 @@ export const NODES = [
                 name: "Create",
                 path: "/create-local-purchase",
                 element: CreateLocalPurchase,
+            },
+            {
+                id: 7.3,
+                roleName: "Edit",
+                path: "/edit-local-purchase/:id",
+                element: EditLocalPurhase,
             },
 
         ],
@@ -144,6 +159,12 @@ export const NODES = [
                 name: "Create",
                 path: "/conveyance-create",
                 element: CreateConveyance,
+            },
+            {
+                id: 8.3,
+                roleName: "Edit",
+                path: "/conveyance-edit/:id",
+                element: UpdateConveyance,
             },
         ],
     },

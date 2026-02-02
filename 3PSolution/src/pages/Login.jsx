@@ -4,8 +4,8 @@ import { useLoginMutation } from "../redux/features/authSlice";
 const Login = () => {
     const [loginApi, { isLoading }] = useLoginMutation();
 
-    const [mobile, setmobile] = useState("0172635191");
-    const [password, setPassword] = useState("abc12345t");
+    const [mobile, setmobile] = useState("01645825264");
+    const [password, setPassword] = useState("abc123456");
 
     const handleSubmit = async (e) => {
         e.preventDefault();

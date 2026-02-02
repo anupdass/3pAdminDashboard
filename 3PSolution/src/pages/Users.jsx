@@ -32,6 +32,7 @@ const Users = () => {
     };
 
     const handleCreate = async (payload) => {
+        console.log(payload);
         try {
             if (mode === "edit") {
                 await updateAdminUser(payload).unwrap();
@@ -82,15 +83,15 @@ const Users = () => {
         );
     }
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6 flex items-center justify-center">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                    <p className="text-red-600 font-medium">Failed to load users</p>
-                </div>
-            </div>
-        );
-    }
+    // if (error) {
+    //     return (
+    //         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6 flex items-center justify-center">
+    //             <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+    //                 <p className="text-red-600 font-medium">Failed to load users</p>
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
 
     const activeUsers = data?.filter(u => u.status === 1).length || 0;

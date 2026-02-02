@@ -1,9 +1,12 @@
-import React, { use, useState } from 'react';
-import { Save, X, DollarSign, Package, Calendar, FileText, TrendingUp } from 'lucide-react';
-import { useCreateExpenditureMutation } from '../../redux/features/expenditureSlice';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Save, X, DollarSign, Package, Calendar, FileText, TrendingUp, Loader2 } from 'lucide-react';
+import { useUpdateExpenditureMutation, useGetExpenditureByIdQuery } from '../../redux/features/expenditureSlice';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const CreateExpandReceive = () => {
+const EditExpandRcve = () => {
+    const { id } = useParams(); // Get the ID from URL params
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         receivedDate: '',
         receivedName: '',
@@ -17,13 +20,42 @@ const CreateExpandReceive = () => {
         officeExp2: '',
         remarks: '',
         status: 1,
-        createBy: '', // You should set this from your auth context/user
         updateBy: ''
     });
 
-    const [createExpenditure, { isLoading, isSuccess, error }] = useCreateExpenditureMutation();
+    // Fetch existing expenditure data
 
-    const navigate = useNavigate();
+    const { data: expenditureData, isLoading: isFetching, error: fetchError } =
+        useGetExpenditureByIdQuery(id, {
+            refetchOnMountOrArgChange: true, // default is true
+            refetchOnFocus: true,            // optional: fetch when window/tab gets focus
+            refetchOnReconnect: true,        // optional: fetch if connection comes back
+        });
+
+    const [updateExpenditure, { isLoading: isUpdating, isSuccess, error: updateError }] = useUpdateExpenditureMutation();
+
+
+
+    // Populate form when data is fetched
+    useEffect(() => {
+        if (expenditureData) {
+            setFormData({
+                receivedDate: expenditureData.receivedDate ? expenditureData.receivedDate.split('T')[0] : '',
+                receivedName: expenditureData.receivedName || '',
+                receivedAmount: expenditureData.receivedAmount || '',
+                officeExpenditure: expenditureData.officeExpenditure || '',
+                uom: expenditureData.uom || '',
+                qty: expenditureData.qty || '',
+                paidAmount: expenditureData.paidAmount || '',
+                projectLocalExp: expenditureData.projectLocalExp || '',
+                conveyance: expenditureData.conveyance || '',
+                officeExp2: expenditureData.officeExp2 || '',
+                remarks: expenditureData.remarks || '',
+                status: expenditureData.status || 1,
+                updateBy: ''
+            });
+        }
+    }, [expenditureData]);
 
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -66,8 +98,8 @@ const CreateExpandReceive = () => {
         if (!validateForm()) return;
 
         try {
-            // Prepare submission data matching the schema
             const submissionData = {
+                id: id,
                 receivedDate: formData.receivedDate,
                 receivedName: formData.receivedName.trim(),
                 receivedAmount: parseFloat(formData.receivedAmount) || 0,
@@ -81,50 +113,63 @@ const CreateExpandReceive = () => {
                 officeExp2: parseFloat(formData.officeExp2) || 0,
                 remarks: formData.remarks.trim() || '',
                 status: formData.status,
-                createBy: formData.createBy || 'current-user-id', // Replace with actual user ID
-                updateBy: formData.updateBy || ''
+                updateBy: formData.updateBy || 'current-user-id' // Replace with actual user ID
             };
 
-            // console.log('Form submitted:', submissionData);
-            const res = await createExpenditure(submissionData).unwrap();
-
-            // console.log('Success:', res);
-
-            // Reset form after successful submission
-            setFormData({
-                receivedDate: '',
-                receivedName: '',
-                receivedAmount: '',
-                officeExpenditure: '',
-                uom: '',
-                qty: '',
-                paidAmount: '',
-                projectLocalExp: '',
-                conveyance: '',
-                officeExp2: '',
-                remarks: '',
-                status: 1,
-                createBy: '',
-                updateBy: ''
-            });
+            const res = await updateExpenditure(submissionData).unwrap();
 
             if (res) {
                 navigate('/expnd-recive');
             }
         } catch (err) {
             console.error('Error:', err);
-            alert(`Error saving entry: ${err?.data?.message || err.message || 'Unknown error'}`);
+            alert(`Error updating entry: ${err?.data?.message || err.message || 'Unknown error'}`);
         }
     };
+
+    // Loading state
+    if (isFetching) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mx-auto mb-4" />
+                    <p className="text-slate-600 font-medium">Loading expenditure data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (fetchError) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+                <div className="max-w-2xl mx-auto mt-8">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                        <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Data</h2>
+                        <p className="text-red-600 mb-4">
+                            {fetchError?.data?.message || 'Failed to load expenditure data'}
+                        </p>
+                        <button
+                            onClick={() => navigate('/expnd-recive')}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                            <X size={16} />
+                            Go Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
             <div className="w-full">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-3">
-                        <h1 className="text-xl font-bold text-white">Create Expand & Receive Entry</h1>
-                        <p className="text-emerald-100 text-xs mt-1">Project costing calculation form</p>
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
+                        <h1 className="text-xl font-bold text-white">Edit Expand & Receive Entry</h1>
+                        <p className="text-blue-100 text-xs mt-1">Update project costing calculation</p>
                     </div>
 
                     {/* Form Content */}
@@ -201,7 +246,7 @@ const CreateExpandReceive = () => {
                                             type="number"
                                             value={formData.officeExpenditure}
                                             onChange={(e) => handleChange('officeExpenditure', e.target.value)}
-                                            className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                            className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                                             placeholder="0.00"
                                             min="0"
                                             step="0.01"
@@ -368,7 +413,7 @@ const CreateExpandReceive = () => {
                                 value={formData.remarks}
                                 onChange={(e) => handleChange('remarks', e.target.value)}
                                 rows="2"
-                                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all resize-none"
+                                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
                                 placeholder="Add any additional remarks or notes"
                             />
                         </div>
@@ -376,12 +421,12 @@ const CreateExpandReceive = () => {
                         {/* Status/Error Messages */}
                         {isSuccess && (
                             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                                Entry created successfully!
+                                Entry updated successfully!
                             </div>
                         )}
-                        {error && (
+                        {updateError && (
                             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                Error: {error?.data?.message || 'Failed to create entry'}
+                                Error: {updateError?.data?.message || 'Failed to update entry'}
                             </div>
                         )}
                     </div>
@@ -398,12 +443,12 @@ const CreateExpandReceive = () => {
                         </button>
                         <button
                             onClick={handleSubmit}
-                            disabled={isLoading}
-                            className="inline-flex items-center gap-2 px-6 py-2 text-sm bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isUpdating}
+                            className="inline-flex items-center gap-2 px-6 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                             type="button"
                         >
                             <Save size={16} />
-                            {isLoading ? 'Saving...' : 'Save Entry'}
+                            {isUpdating ? 'Updating...' : 'Update Entry'}
                         </button>
                     </div>
                 </div>
@@ -412,4 +457,4 @@ const CreateExpandReceive = () => {
     );
 };
 
-export default CreateExpandReceive;
+export default EditExpandRcve;

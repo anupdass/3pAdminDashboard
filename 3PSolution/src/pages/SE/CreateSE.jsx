@@ -21,13 +21,14 @@ const CreateSE = () => {
     };
 
     const calculatePaymentDue = () => {
-        const costing = parseFloat(formData.costing) || 0;
-        const bcbl = parseFloat(formData.bcbl) || 0;
-        const cash = parseFloat(formData.cash) || 0;
-        return costing - bcbl - cash;
+        const constingAmount = parseFloat(formData.constingAmount) || 0;
+        const paymentBCBL = parseFloat(formData.paymentBCBL) || 0;
+        const paymentHand = parseFloat(formData.paymentHand) || 0;
+        return constingAmount - paymentBCBL - paymentHand;
     };
 
     const paymentDue = calculatePaymentDue();
+
 
     const handleSubmit = async () => {
         const userInfo = JSON.parse(localStorage.getItem('user'));

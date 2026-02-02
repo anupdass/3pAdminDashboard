@@ -1,5 +1,3 @@
-
-const { get } = require("mongoose");
 const ClientPo = require("../models/clientPoModel");
 
 

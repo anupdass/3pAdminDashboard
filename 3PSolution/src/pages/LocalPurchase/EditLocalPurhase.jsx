@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { Save, X, Package, Calendar, DollarSign, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useCreateLocalPurchaseMutation } from '../../redux/features/locapurchaseSlice';
+import React, { useState, useEffect } from 'react';
+import { Save, X, Package, Calendar, DollarSign, FileText, Loader2 } from 'lucide-react';
+import { useUpdateLocalPurchaseMutation, useGetLocalPurchaseByIdQuery } from '../../redux/features/locapurchaseSlice';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export default function CreateLocalPurchase() {
+const EditLocalPurchase = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         projectName: '',
         date: '',
@@ -12,12 +15,31 @@ export default function CreateLocalPurchase() {
         paidSNS: '',
         paidMWTIL: '',
         pettyCash: '',
-        createBy: '', // Set from auth context
         updateBy: ''
     });
 
-    const [createLocalPurchase, { isLoading, isSuccess, error }] = useCreateLocalPurchaseMutation();
-    const navigate = useNavigate();
+    // Fetch existing purchase data
+    const { data: purchaseData, isLoading: isFetching, error: fetchError, refetch } =
+        useGetLocalPurchaseByIdQuery(id, {
+            refetchOnMountOrArgChange: true,
+        });
+    const [updateLocalPurchase, { isLoading: isUpdating, isSuccess, error: updateError }] = useUpdateLocalPurchaseMutation();
+
+    // Populate form when data is fetched
+    useEffect(() => {
+        if (purchaseData) {
+            setFormData({
+                projectName: purchaseData.projectName || '',
+                date: purchaseData.date ? purchaseData.date.split('T')[0] : '',
+                description: purchaseData.description || '',
+                requisitionAmount: parseInt(purchaseData.requisitionAmount) || '',
+                paidSNS: purchaseData.paidSNS || '',
+                paidMWTIL: purchaseData.paidMWTIL || '',
+                pettyCash: purchaseData.pettyCash || '',
+                updateBy: ''
+            });
+        }
+    }, [purchaseData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -77,6 +99,7 @@ export default function CreateLocalPurchase() {
 
         try {
             const submissionData = {
+                id: id,
                 projectName: formData.projectName.trim(),
                 date: formData.date,
                 description: formData.description.trim(),
@@ -84,49 +107,68 @@ export default function CreateLocalPurchase() {
                 paidSNS: parseFloat(formData.paidSNS) || 0,
                 paidMWTIL: parseFloat(formData.paidMWTIL) || 0,
                 pettyCash: parseFloat(formData.pettyCash) || 0,
-                totalCosting: calculateTotalCosting(),
+                totalPaid: calculateTotalCosting(),
                 dueAmount: calculateDue(),
-                createBy: formData.createBy || 'current-user-id', // Replace with actual user ID
-                updateBy: formData.updateBy || ''
+                updateBy: formData.updateBy || 'current-user-id'
             };
 
-            const res = await createLocalPurchase(submissionData).unwrap();
-
-            // console.log('Success:', res);
-
-            // Reset form
-            setFormData({
-                projectName: '',
-                date: '',
-                description: '',
-                requisitionAmount: '',
-                paidSNS: '',
-                paidMWTIL: '',
-                pettyCash: '',
-                createBy: '',
-                updateBy: ''
-            });
+            const res = await updateLocalPurchase(submissionData).unwrap();
 
             if (res) {
-                navigate('/purchase-list'); // Navigate to list page
+                navigate('/purchase-list');
             }
         } catch (err) {
             console.error('Error:', err);
-            alert(`Error saving purchase: ${err?.data?.message || err.message || 'Unknown error'}`);
+            alert(`Error updating purchase: ${err?.data?.message || err.message || 'Unknown error'}`);
         }
     };
 
     const totalCosting = calculateTotalCosting();
     const dueAmount = calculateDue();
 
+    // Loading state
+    if (isFetching) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-slate-600 font-medium">Loading purchase data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (fetchError) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+                <div className="max-w-2xl mx-auto mt-8">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                        <h2 className="text-xl font-bold text-red-700 mb-2">Error Loading Data</h2>
+                        <p className="text-red-600 mb-4">
+                            {fetchError?.data?.message || 'Failed to load purchase data'}
+                        </p>
+                        <button
+                            onClick={() => navigate('/local-purchase')}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                            <X size={16} />
+                            Go Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
             <div className="w-full">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
-                        <h1 className="text-xl font-bold text-white">Create Local Purchase</h1>
-                        <p className="text-blue-100 text-xs mt-1">Add new project purchase record</p>
+                    <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-3">
+                        <h1 className="text-xl font-bold text-white">Edit Local Purchase</h1>
+                        <p className="text-emerald-100 text-xs mt-1">Update project purchase record</p>
                     </div>
 
                     {/* Form Content */}
@@ -142,7 +184,7 @@ export default function CreateLocalPurchase() {
                                 {/* Project Name */}
                                 <div className="space-y-1 md:col-span-2">
                                     <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                                        <FileText size={14} className="text-blue-600" />
+                                        <FileText size={14} className="text-emerald-600" />
                                         Project Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -150,7 +192,7 @@ export default function CreateLocalPurchase() {
                                         name="projectName"
                                         value={formData.projectName}
                                         onChange={handleChange}
-                                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
                                         placeholder="Enter project name"
                                         required
                                     />
@@ -159,7 +201,7 @@ export default function CreateLocalPurchase() {
                                 {/* Date */}
                                 <div className="space-y-1">
                                     <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                                        <Calendar size={14} className="text-blue-600" />
+                                        <Calendar size={14} className="text-emerald-600" />
                                         Date <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -167,14 +209,14 @@ export default function CreateLocalPurchase() {
                                         name="date"
                                         value={formData.date}
                                         onChange={handleChange}
-                                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
                                         required
                                     />
                                 </div>
 
                                 {/* Requisition Amount */}
                                 <div className="space-y-1">
-                                    <label className="flex items-center gap-1.5 text-xs font-semibold text-blue-700">
+                                    <label className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
                                         <DollarSign size={14} />
                                         Requisition Amount <span className="text-red-500">*</span>
                                     </label>
@@ -185,7 +227,7 @@ export default function CreateLocalPurchase() {
                                             name="requisitionAmount"
                                             value={formData.requisitionAmount}
                                             onChange={handleChange}
-                                            className="w-full pl-7 pr-3 py-2 text-sm border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                            className="w-full pl-7 pr-3 py-2 text-sm border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
                                             placeholder="0.00"
                                             min="0"
                                             step="0.01"
@@ -205,7 +247,7 @@ export default function CreateLocalPurchase() {
                                         value={formData.description}
                                         onChange={handleChange}
                                         rows="2"
-                                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all resize-none"
                                         placeholder="Enter purchase description"
                                         required
                                     />
@@ -292,8 +334,8 @@ export default function CreateLocalPurchase() {
                                 <h2 className="text-sm font-bold text-slate-800 mb-3">Summary</h2>
                                 <div className="grid grid-cols-3 gap-3">
                                     <div className="bg-white rounded-lg p-3 shadow-sm border border-slate-200">
-                                        <p className="text-xs text-slate-500 mb-1">Total Costing</p>
-                                        <p className="text-lg font-bold text-slate-900">৳{totalCosting.toFixed(2)}</p>
+                                        <p className="text-xs text-slate-500 mb-1">Total Paid</p>
+                                        <p className="text-lg font-bold text-emerald-700">৳{totalCosting.toFixed(2)}</p>
                                     </div>
                                     <div className="bg-white rounded-lg p-3 shadow-sm border border-slate-200">
                                         <p className="text-xs text-slate-500 mb-1">Due Amount</p>
@@ -301,9 +343,9 @@ export default function CreateLocalPurchase() {
                                             ৳{dueAmount.toFixed(2)}
                                         </p>
                                     </div>
-                                    <div className="bg-white rounded-lg p-3 shadow-sm border border-blue-200">
+                                    <div className="bg-white rounded-lg p-3 shadow-sm border border-emerald-200">
                                         <p className="text-xs text-slate-500 mb-1">Requisition</p>
-                                        <p className="text-lg font-bold text-blue-600">
+                                        <p className="text-lg font-bold text-emerald-600">
                                             ৳{parseFloat(formData.requisitionAmount).toFixed(2)}
                                         </p>
                                     </div>
@@ -314,12 +356,12 @@ export default function CreateLocalPurchase() {
                         {/* Status/Error Messages */}
                         {isSuccess && (
                             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                                Purchase created successfully!
+                                Purchase updated successfully!
                             </div>
                         )}
-                        {error && (
+                        {updateError && (
                             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                Error: {error?.data?.message || 'Failed to create purchase'}
+                                Error: {updateError?.data?.message || 'Failed to update purchase'}
                             </div>
                         )}
                     </div>
@@ -327,7 +369,7 @@ export default function CreateLocalPurchase() {
                     {/* Footer Actions */}
                     <div className="bg-slate-50 px-4 py-3 border-t border-slate-200 flex gap-3 justify-end">
                         <button
-                            onClick={() => navigate('/purchase-list')}
+                            onClick={() => navigate('/local-purchase')}
                             className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-100 transition-colors"
                             type="button"
                         >
@@ -336,16 +378,18 @@ export default function CreateLocalPurchase() {
                         </button>
                         <button
                             onClick={handleSubmit}
-                            disabled={isLoading}
-                            className="inline-flex items-center gap-2 px-6 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isUpdating}
+                            className="inline-flex items-center gap-2 px-6 py-2 text-sm bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold rounded-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                             type="button"
                         >
                             <Save size={16} />
-                            {isLoading ? 'Saving...' : 'Create Purchase'}
+                            {isUpdating ? 'Updating...' : 'Update Purchase'}
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     );
-}
+};
+
+export default EditLocalPurchase;
